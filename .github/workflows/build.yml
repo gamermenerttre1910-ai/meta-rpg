@@ -6,42 +6,34 @@ on:
 jobs:
   export-apk:
     runs-on: ubuntu-latest
-    name: Export Android APK
+    container:
+      image: barichello/godot-ci:4.3
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Java JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Debug Keystore
+      - name: Setup Android Debug Keystore
         run: |
           mkdir -p ~/.config/godot
+          mkdir -p ~/.local/share/godot/export_templates/4.3.stable
+          cp -r /root/.local/share/godot/export_templates/4.3.stable/* ~/.local/share/godot/export_templates/4.3.stable/ || true
+          
           keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android -keystore ~/.config/godot/debug.keystore -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 9999
+          
+          echo '[settings]' > ~/.config/godot/editor_settings-4.godot
+          echo "export/android/android_sdk_path = \"/usr/lib/android-sdk\"" >> ~/.config/godot/editor_settings-4.godot
+          echo "export/android/debug_keystore = \"$HOME/.config/godot/debug.keystore\"" >> ~/.config/godot/editor_settings-4.godot
+          echo 'export/android/debug_user = "androiddebugkey"' >> ~/.config/godot/editor_settings-4.godot
+          echo 'export/android/debug_password = "android"' >> ~/.config/godot/editor_settings-4.godot
 
-      - name: Start ADB Server
+      - name: Build Android APK
         run: |
-          $ANDROID_SDK_ROOT/platform-tools/adb start-server
-
-      - name: Export Godot Android APK
-        uses: firebelley/godot-export@v6.0.0
-        env:
-          GODOT_ANDROID_SDK_PATH: ${{ env.ANDROID_SDK_ROOT }}
-          GODOT_ANDROID_DEBUG_KEYSTORE: /home/runner/.config/godot/debug.keystore
-          GODOT_ANDROID_DEBUG_USER: androiddebugkey
-          GODOT_ANDROID_DEBUG_PASSWORD: android
-        with:
-          godot_executable_download_url: https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
-          godot_export_templates_download_url: https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
-          relative_project_path: ./
-          archive_output: false
-          export_debug: "true"
+          mkdir -p build
+          godot --headless --verbose --export-debug "Android Debug" build/meta-rpg.apk
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: meta-rpg-apk
           path: build/meta-rpg.apk
+concurrency: 
