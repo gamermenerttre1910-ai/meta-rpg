@@ -1,0 +1,24 @@
+config_version=5
+
+[application]
+config/name="META-RPG"
+run/main_scene="res://main.tscn"
+config/icon="res://icon.png"
+config/features=PackedStringArray("4.2")
+
+[display]
+window/size/viewport_width=480
+window/size/viewport_height=270
+window/size/window_width_override=960
+window/size/window_height_override=540
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+window/handheld/orientation=4
+
+[input_devices]
+pointing/emulate_mouse_from_touch=true
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0, 0, 0, 1)
