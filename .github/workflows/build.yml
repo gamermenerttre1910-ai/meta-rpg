@@ -21,6 +21,13 @@ jobs:
           unzip Godot_v4.3-stable_linux.x86_64.zip
           sudo mv Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
 
+      - name: Install Godot Export Templates
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates/4.3.stable
+          wget https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
+          unzip Godot_v4.3-stable_export_templates.tpz
+          mv templates/* ~/.local/share/godot/export_templates/4.3.stable/
+
       - name: Setup Debug Keystore & Godot Settings
         run: |
           mkdir -p ~/.config/godot
