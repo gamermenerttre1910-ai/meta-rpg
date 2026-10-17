@@ -1,0 +1,19 @@
+name: apk
+on:
+  workflow_dispatch:
+  push:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          export HOME=/root
+          mkdir -p build
+          godot --headless --import || true
+          godot --headless --verbose --export-debug "Android Debug" build/meta-rpg.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: meta-rpg-apk
+          path: build/meta-rpg.apk
