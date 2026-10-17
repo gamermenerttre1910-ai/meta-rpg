@@ -10,12 +10,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Android SDK Path
+      - name: Generate Key & Setup Godot Editor Settings
         run: |
           mkdir -p /root/.config/godot
+          keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android -keystore /root/debug.keystore -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 9999
           echo '[settings]' > /root/.config/godot/editor_settings-4.godot
           echo 'export/android/android_sdk_path = "/root/android-sdk"' >> /root/.config/godot/editor_settings-4.godot
           echo 'export/android/debug_keystore = "/root/debug.keystore"' >> /root/.config/godot/editor_settings-4.godot
+          echo 'export/android/debug_user = "androiddebugkey"' >> /root/.config/godot/editor_settings-4.godot
+          echo 'export/android/debug_password = "android"' >> /root/.config/godot/editor_settings-4.godot
 
       - name: Build Android APK
         run: |
