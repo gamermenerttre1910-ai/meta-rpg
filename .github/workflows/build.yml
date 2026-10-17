@@ -6,22 +6,39 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: barichello/godot-ci:4.3
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Godot Editor Settings
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android Build Tools
         run: |
-          mkdir -p /root/.config/godot
-          echo '[settings]' > /root/.config/godot/editor_settings-4.godot
-          echo 'export/android/android_sdk_path = "/root/android-sdk"' >> /root/.config/godot/editor_settings-4.godot
-          echo 'export/android/debug_keystore = "/root/debug.keystore"' >> /root/.config/godot/editor_settings-4.godot
-          echo 'export/android/debug_user = "androiddebugkey"' >> /root/.config/godot/editor_settings-4.godot
-          echo 'export/android/debug_password = "android"' >> /root/.config/godot/editor_settings-4.godot
+          sdkmanager "build-tools;33.0.2" "platforms;android-33" "platform-tools"
+
+      - name: Setup Godot Engine
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.3.0
+
+      - name: Generate Debug Keystore & Godot Settings
+        run: |
+          mkdir -p ~/.config/godot
+          keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android -keystore ~/.config/godot/debug.keystore -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 9999
+          echo '[settings]' > ~/.config/godot/editor_settings-4.godot
+          echo 'export/android/android_sdk_path = "'$ANDROID_HOME'"' >> ~/.config/godot/editor_settings-4.godot
+          echo 'export/android/debug_keystore = "'$HOME'/.config/godot/debug.keystore"' >> ~/.config/godot/editor_settings-4.godot
+          echo 'export/android/debug_user = "androiddebugkey"' >> ~/.config/godot/editor_settings-4.godot
+          echo 'export/android/debug_password = "android"' >> ~/.config/godot/editor_settings-4.godot
 
       - name: Build Android APK
         run: |
-          export HOME=/root
           mkdir -p build
           godot --headless --verbose --export-debug "Android Debug" build/meta-rpg.apk
 
