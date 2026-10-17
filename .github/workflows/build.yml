@@ -2,18 +2,29 @@ name: apk
 on:
   workflow_dispatch:
   push:
+
 jobs:
   build:
     runs-on: ubuntu-latest
     container: barichello/godot-ci:4.3
     steps:
       - uses: actions/checkout@v4
-      - run: |
+
+      - name: Setup Android SDK Path
+        run: |
+          mkdir -p /root/.config/godot
+          echo '[settings]' > /root/.config/godot/editor_settings-4.godot
+          echo 'export/android/android_sdk_path = "/root/android-sdk"' >> /root/.config/godot/editor_settings-4.godot
+          echo 'export/android/debug_keystore = "/root/debug.keystore"' >> /root/.config/godot/editor_settings-4.godot
+
+      - name: Build Android APK
+        run: |
           export HOME=/root
           mkdir -p build
-          godot --headless --import || true
           godot --headless --verbose --export-debug "Android Debug" build/meta-rpg.apk
-      - uses: actions/upload-artifact@v4
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
         with:
           name: meta-rpg-apk
           path: build/meta-rpg.apk
